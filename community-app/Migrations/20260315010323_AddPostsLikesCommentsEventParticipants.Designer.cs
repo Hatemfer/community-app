@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using community_app.Data;
 
@@ -11,9 +12,11 @@ using community_app.Data;
 namespace community_app.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315010323_AddPostsLikesCommentsEventParticipants")]
+    partial class AddPostsLikesCommentsEventParticipants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -313,7 +316,7 @@ namespace community_app.Migrations
             modelBuilder.Entity("community_app.Models.CommunityMember", b =>
                 {
                     b.HasOne("community_app.Models.Community", "Community")
-                        .WithMany("Members")
+                        .WithMany()
                         .HasForeignKey("CommunityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -403,11 +406,6 @@ namespace community_app.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Community");
-                });
-
-            modelBuilder.Entity("community_app.Models.Community", b =>
-                {
-                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("community_app.Models.Event", b =>

@@ -41,7 +41,6 @@ namespace community_app.Controllers
             };
 
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
-
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
@@ -65,7 +64,17 @@ namespace community_app.Controllers
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new { token });
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email,
+                    user.Role
+                }
+            });
         }
 
         private string GenerateJwtToken(User user)
@@ -80,7 +89,6 @@ namespace community_app.Controllers
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -95,26 +103,23 @@ namespace community_app.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] string email, [FromServices] EmailService emailService)
+        public async Task<IActionResult> ForgotPassword(
+            [FromBody] string email,
+            [FromServices] EmailService emailService)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
-                return Ok("If this email exists, a reset link has been sent."); // avoid exposing emails
+                return Ok("If this email exists, a reset link has been sent.");
 
-            // Generate secure token
             user.ResetToken = Guid.NewGuid().ToString();
             user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
             await _context.SaveChangesAsync();
 
-            // Prepare reset link (replace with your frontend page)
             var resetLink = $"https://yourfrontendapp.com/reset-password?token={user.ResetToken}";
-
-            // Send email
             string subject = "Password Reset Request";
             string body = $"Hello {user.Username},<br><br>Click <a href='{resetLink}'>here</a> to reset your password. This link expires in 1 hour.";
 
             emailService.SendEmail(user.Email, subject, body);
-
             return Ok("If this email exists, a reset link has been sent.");
         }
 
@@ -127,14 +132,11 @@ namespace community_app.Controllers
             if (user == null)
                 return BadRequest("Invalid or expired token.");
 
-            var passwordHasher = new PasswordHasher<User>();
-            user.PasswordHash = passwordHasher.HashPassword(user, dto.NewPassword);
-
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
             user.ResetToken = null;
             user.ResetTokenExpiry = null;
 
             await _context.SaveChangesAsync();
-
             return Ok("Password has been reset successfully.");
         }
     }

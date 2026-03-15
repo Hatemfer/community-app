@@ -3,6 +3,7 @@ using community_app.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace community_app.Controllers
 {
@@ -18,7 +19,7 @@ namespace community_app.Controllers
             _context = context;
         }
 
-        // GET: api/users
+        // GET: api/users  (Admin only)
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
@@ -31,21 +32,20 @@ namespace community_app.Controllers
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-
             if (user == null)
                 return NotFound();
-
             return user;
         }
 
-        // POST: api/users
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
+        // GET: api/users/me
+        [HttpGet("me")]
+        public async Task<ActionResult<User>> GetMe()
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound();
+            return user;
         }
 
         // PUT: api/users/5
@@ -54,10 +54,8 @@ namespace community_app.Controllers
         {
             if (id != user.Id)
                 return BadRequest();
-
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
@@ -66,13 +64,10 @@ namespace community_app.Controllers
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-
             if (user == null)
                 return NotFound();
-
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
     }
