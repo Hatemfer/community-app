@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using community_app.Services;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,5 +96,10 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Prometheus Metrics
+app.UseHttpMetrics();
+app.MapMetrics();
+
 app.MapControllers();
 app.Run();

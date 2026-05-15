@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace community_app.Models
 {
@@ -15,7 +15,7 @@ namespace community_app.Models
         public string Role { get; set; } = "User";
 
         public string? ResetToken { get; set; }
-
         public DateTime? ResetTokenExpiry { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
